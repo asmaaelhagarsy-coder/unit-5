@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unit 5 – Mini Platform (Lessons 1–4 + Exam) — Mint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2fffb;--text:#263238;--accent:#10b981;--ok:#2ecc71;--bad:#e74c3c}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Poppins',system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:linear-gradient(180deg,#f2fffb,#ffffff)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(90deg,#d1fae5,#f2fffb);border-bottom:4px solid #a7f3d0}
+.h-left{font-weight:800}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:#fff;border:2px solid var(--accent);color:var(--accent);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--accent);color:#fff}
+.nav{display:flex;gap:8px;padding:10px;background:linear-gradient(90deg,#e6fff6,#eafcf6,#f2fffb);position:sticky;top:0;z-index:5}
+.tab{padding:10px 14px;border:none;border-radius:12px;background:#ffffffcc;font-weight:700;cursor:pointer;transition:transform .05s, background .25s, box-shadow .25s}
+.tab:active{transform:scale(.98)}
+.tab.active{outline:3px solid var(--accent);background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+/* Mint pastel shades when active per tab */
+.tab[data-tab="l1"].active{background:linear-gradient(90deg,#e7fff5,#ffffff)}
+.tab[data-tab="l2"].active{background:linear-gradient(90deg,#d9fff0,#ffffff)}
+.tab[data-tab="l3"].active{background:linear-gradient(90deg,#effff8,#ffffff)}
+.tab[data-tab="l4"].active{background:linear-gradient(90deg,#f2fff9,#ffffff)}
+.tab[data-tab="exam"].active{background:linear-gradient(90deg,#e9ffef,#ffffff)}
+.page{max-width:1024px;margin:12px auto;padding:0 10px}
+.panel{display:none}
+.panel.active{display:block}
+.section{background:#fff;border:2px solid #c7f9e4;border-radius:14px;padding:14px;margin:12px 0}
+.small{font-size:.9rem;color:#555}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+/* Attractive mint cards */
+.card{position:relative;background:linear-gradient(180deg,#ffffff,#effcf7);border:2px solid #bff7e1;border-radius:18px;padding:14px;box-shadow:0 8px 22px rgba(16,185,129,.12);overflow:hidden}
+.card:before{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(ellipse at center, #a7f3d055, transparent 60%)}
+.card:hover{box-shadow:0 12px 28px rgba(16,185,129,.18)}
+.word{font-size:1.2rem;font-weight:800;color:#065f46}
+.arabic{font-weight:700;color:#37474f;margin:8px 0}
+.example{color:#263238}
+.controls-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.play{border:2px solid #a7f3d0;background:#fff;color:#065f46;border-radius:10px;padding:6px 10px;font-weight:700}
+.play.example{border-color:#86efac;color:#065f46}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.option{padding:10px;border:2px solid #c7f9e4;border-radius:12px;cursor:pointer;background:#f2fffb;font-weight:700;transition:transform .05s}
+.option:active{transform:scale(.98)}
+.option.correct{background:#d7fbe8;border-color:var(--ok)}
+.option.wrong{background:#ffe2e2;border-color:var(--bad)}
+.matching{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.column{background:#fff;border:2px solid #c7f9e4;border-radius:12px;padding:10px;min-height:260px}
+.token{padding:10px;margin:8px;background:linear-gradient(180deg,#eafff6,#ffffff);border-radius:12px;border:2px solid #a7f3d0;cursor:grab;font-weight:700}
+.bucket{padding:10px;margin:8px;background:linear-gradient(180deg,#fff8e6,#ffffff);border:2px dashed #ffcc80;border-radius:12px;min-height:42px}
+.bucket.correct{background:#ecfff7;border-color:#2ecc71}
+.bucket.wrong{animation:shake .3s}
+@keyframes shake{from{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}to{transform:translateX(0)}}
+.subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.subtab{padding:8px 12px;border:none;border-radius:10px;background:#fff;border:2px solid #baf7e0;font-weight:700;cursor:pointer;transition:background .2s, box-shadow .2s}
+.subtab.active{background:#eafff6;box-shadow:0 6px 14px rgba(16,185,129,.12)}
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111;color:#fff;padding:8px 12px;border-radius:999px;opacity:0;transition:opacity .25s}
+.toast.show{opacity:.95}
+#confetti{position:fixed;inset:0;pointer-events:none}
+.progress{height:10px;border-radius:999px;background:#e6fff6;overflow:hidden}
+.progress>span{display:block;height:100%;background:linear-gradient(90deg,#10b981,#06d6a0);width:0%}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#eafff6;border:2px solid #baf7e0;font-weight:800;color:#065f46}
+.note{font-size:.9rem;color:#444}
+.teacher{font-weight:800;color:#065f46}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="h-left">Unit 5 – Using Technology at Schools · <span class="badge">Mini Platform</span></div>
+  <div class="controls">
+    <span class="teacher">By: Asmaa Mahmoud El‑Hagrasy</span>
+    <button id="enableSound" class="btn primary">🔊 Enable Sound</button>
+    <button id="testVoice" class="btn">🧪 Test Voice</button>
+    <span class="small">Voice: <span id="voiceName">(not ready)</span></span>
+  </div>
+</header>
+<nav class="nav" role="tablist">
+  <button class="tab active" data-tab="l1">Lesson 1</button>
+  <button class="tab" data-tab="l2">Lesson 2</button>
+  <button class="tab" data-tab="l3">Lesson 3</button>
+  <button class="tab" data-tab="l4">Lesson 4</button>
+  <button class="tab" data-tab="exam">Unit Exam</button>
+</nav>
+<div id="toast" class="toast"></div>
+<canvas id="confetti"></canvas>
+<main class="page">
+  <section id="l1" class="panel active"><h2>Lesson 1 — Why Learning a Foreign Language Matters</h2>
+    <div class="subtabs"><button class="subtab active" data-stab="l1_vocab">Vocabulary</button><button class="subtab" data-stab="l1_games">Games</button><button class="subtab" data-stab="l1_reading">Reading</button></div>
+    <div id="l1_vocab" class="section"><div class="grid" id="cardGrid_l1"></div>
+      <div class="section"><h3>Spelling Challenge ✍️</h3><div class="note">Show the Arabic meaning, listen to the English word, then type it.</div>
+        <div class="controls-row"><input id="spellInput_l1" type="text" placeholder="Type the English word here" style="flex:1;min-width:220px;padding:10px;border:2px solid var(--accent);border-radius:10px;font-weight:700"/>
+          <button id="spellHear_l1" class="btn">🎧 Hear</button><button id="spellCheck_l1" class="btn">✔ Check</button><button id="spellNext_l1" class="btn">➡ Next</button><button id="spellStart_l1" class="btn primary">▶ Start</button></div>
+        <div class="small">Score: <span id="spellScore_l1">0</span> / <span id="spellTotal_l1">0</span></div><div id="spellPrompt_l1" class="small">Press ▶ Start</div></div>
+    </div>
+    <div id="l1_games" class="section" style="display:none"><h3>🧩 Drag & Drop Matching</h3><div class="matching"><div class="column" id="englishCol_l1"></div><div class="column" id="arabicCol_l1"></div></div>
+      <div class="small">Matched: <span id="matchedCount_l1">0</span>/<span id="totalPairs_l1">0</span></div><div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:22px 0"></div>
+      <h3>🔥 Mini Kahoot – Vocabulary MCQ</h3><div id="quiz_l1"></div><div class="small">Score: <span id="quizScore_l1">0</span>/<span id="quizTotal_l1">0</span></div></div>
+    <div id="l1_reading" class="section" style="display:none"><h3>Reading – 6 Simple Sentences</h3><ol id="readingList_l1" style="padding:0;margin:0"></ol></div>
+  </section>
+  <section id="l2" class="panel"><h2>Lesson 2 — My Journey as a Multilingual</h2>
+    <div class="subtabs"><button class="subtab active" data-stab="l2_vocab">Vocabulary</button><button class="subtab" data-stab="l2_games">Games</button><button class="subtab" data-stab="l2_reading">Reading</button></div>
+    <div id="l2_vocab" class="section"><div class="grid" id="cardGrid_l2"></div>
+      <div class="section"><h3>Spelling Challenge ✍️</h3><div class="note">Show the Arabic meaning, listen to the English word, then type it.</div>
+        <div class="controls-row"><input id="spellInput_l2" type="text" placeholder="Type the English word here" style="flex:1;min-width:220px;padding:10px;border:2px solid var(--accent);border-radius:10px;font-weight:700"/>
+          <button id="spellHear_l2" class="btn">🎧 Hear</button><button id="spellCheck_l2" class="btn">✔ Check</button><button id="spellNext_l2" class="btn">➡ Next</button><button id="spellStart_l2" class="btn primary">▶ Start</button></div>
+        <div class="small">Score: <span id="spellScore_l2">0</span> / <span id="spellTotal_l2">0</span></div><div id="spellPrompt_l2" class="small">Press ▶ Start</div></div>
+    </div>
+    <div id="l2_games" class="section" style="display:none"><h3>🧩 Drag & Drop Matching</h3><div class="matching"><div class="column" id="englishCol_l2"></div><div class="column" id="arabicCol_l2"></div></div>
+      <div class="small">Matched: <span id="matchedCount_l2">0</span>/<span id="totalPairs_l2">0</span></div><div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:22px 0"></div>
+      <h3>🔥 Mini Kahoot – Vocabulary MCQ</h3><div id="quiz_l2"></div><div class="small">Score: <span id="quizScore_l2">0</span>/<span id="quizTotal_l2">0</span></div></div>
+    <div id="l2_reading" class="section" style="display:none"><h3>Reading – 6 Simple Sentences</h3><ol id="readingList_l2" style="padding:0;margin:0"></ol></div>
+  </section>
+  <section id="l3" class="panel"><h2>Lesson 3 — Modern Technology and Learning Foreign Languages</h2>
+    <div class="subtabs"><button class="subtab active" data-stab="l3_vocab">Vocabulary</button><button class="subtab" data-stab="l3_games">Games</button><button class="subtab" data-stab="l3_reading">Reading</button><button class="subtab" data-stab="l3_grammar">Grammar</button></div>
+    <div id="l3_vocab" class="section"><div class="grid" id="cardGrid_l3"></div>
+      <div class="section"><h3>Spelling Challenge ✍️</h3><div class="note">Show the Arabic meaning, listen to the English word, then type it.</div>
+        <div class="controls-row"><input id="spellInput_l3" type="text" placeholder="Type the English word here" style="flex:1;min-width:220px;padding:10px;border:2px solid var(--accent);border-radius:10px;font-weight:700"/>
+          <button id="spellHear_l3" class="btn">🎧 Hear</button><button id="spellCheck_l3" class="btn">✔ Check</button><button id="spellNext_l3" class="btn">➡ Next</button><button id="spellStart_l3" class="btn primary">▶ Start</button></div>
+        <div class="small">Score: <span id="spellScore_l3">0</span> / <span id="spellTotal_l3">0</span></div><div id="spellPrompt_l3" class="small">Press ▶ Start</div></div>
+    </div>
+    <div id="l3_games" class="section" style="display:none"><h3>🧩 Drag & Drop Matching</h3><div class="matching"><div class="column" id="englishCol_l3"></div><div class="column" id="arabicCol_l3"></div></div>
+      <div class="small">Matched: <span id="matchedCount_l3">0</span>/<span id="totalPairs_l3">0</span></div><div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:22px 0"></div>
+      <h3>🔥 Mini Kahoot – Vocabulary MCQ</h3><div id="quiz_l3"></div><div class="small">Score: <span id="quizScore_l3">0</span>/<span id="quizTotal_l3">0</span></div></div>
+    <div id="l3_reading" class="section" style="display:none"><h3>Reading – 6 Simple Sentences</h3><ol id="readingList_l3" style="padding:0;margin:0"></ol></div>
+    <div id="l3_grammar" class="section" style="display:none"><h3>Grammar – Quantifiers (some / any / many / much / a few / a little)</h3>
+      <div class="section" style="background:linear-gradient(180deg,#effcf7,#fff);border:2px solid #c7f9e2;border-radius:14px">
+        <ul style="margin:0 0 8px 18px;line-height:1.6">
+          <li><b>some</b> / <b>any</b> → some (affirmative & offers/requests), any (negatives & questions).</li>
+          <li><b>many</b> / <b>much</b> → many with countable, much with uncountable.</li>
+          <li><b>a few</b> / <b>a little</b> → small positive quantity (countable/uncountable).</li>
+        </ul>
+        <div style="display:grid;gap:8px">
+          <div><em>There are <u>many</u> apps for learning.</em> <button class="btn" onclick="speak('There are many apps for learning.',0.9)">🔊 Speak</button></div>
+          <div><em>We don’t have <u>much</u> time today.</em> <button class="btn" onclick="speak('We do not have much time today.',0.9)">🔊 Speak</button></div>
+          <div><em>Can I have <u>some</u> help?</em> <button class="btn" onclick="speak('Can I have some help?',0.9)">🔊 Speak</button></div>
+        </div>
+      </div>
+      <div id="grammarQuiz_l3"></div><div class="small">Score: <span id="gScore_l3">0</span>/<span id="gTotal_l3">0</span></div>
+    </div>
+  </section>
+  <section id="l4" class="panel"><h2>Lesson 4 — Ramy’s Journey with English</h2>
+    <div class="subtabs"><button class="subtab active" data-stab="l4_vocab">Vocabulary</button><button class="subtab" data-stab="l4_games">Games</button><button class="subtab" data-stab="l4_reading">Reading</button></div>
+    <div id="l4_vocab" class="section"><div class="grid" id="cardGrid_l4"></div>
+      <div class="section"><h3>Spelling Challenge ✍️</h3><div class="note">Show the Arabic meaning, listen to the English word, then type it.</div>
+        <div class="controls-row"><input id="spellInput_l4" type="text" placeholder="Type the English word here" style="flex:1;min-width:220px;padding:10px;border:2px solid var(--accent);border-radius:10px;font-weight:700"/>
+          <button id="spellHear_l4" class="btn">🎧 Hear</button><button id="spellCheck_l4" class="btn">✔ Check</button><button id="spellNext_l4" class="btn">➡ Next</button><button id="spellStart_l4" class="btn primary">▶ Start</button></div>
+        <div class="small">Score: <span id="spellScore_l4">0</span> / <span id="spellTotal_l4">0</span></div><div id="spellPrompt_l4" class="small">Press ▶ Start</div></div>
+    </div>
+    <div id="l4_games" class="section" style="display:none"><h3>🧩 Drag & Drop Matching</h3><div class="matching"><div class="column" id="englishCol_l4"></div><div class="column" id="arabicCol_l4"></div></div>
+      <div class="small">Matched: <span id="matchedCount_l4">0</span>/<span id="totalPairs_l4">0</span></div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);margin:22px 0"></div>
+      <h3>🔥 Mini Kahoot – Vocabulary MCQ</h3><div id="quiz_l4"></div><div class="small">Score: <span id="quizScore_l4">0</span>/<span id="quizTotal_l4">0</span></div></div>
+    <div id="l4_reading" class="section" style="display:none"><h3>Reading – 6 Simple Sentences</h3><ol id="readingList_l4" style="padding:0;margin:0"></ol></div>
+  </section>
+  <section id="exam" class="panel"><h2>Unit 5 – Interactive Exam</h2>
+    <div class="section"><div class="badge">Total Score: <span id="totScore">0</span> / <span id="totMax">0</span></div><div class="badge">Answered: <span id="answered">0</span></div><div class="progress" style="flex:1;min-width:200px"><span id="bar"></span></div></div>
+    <div class="section"><h3>A) Vocabulary – Choose the correct answer</h3><div id="vocabMCQ"></div></div>
+    <div class="section"><h3>B) Grammar (Quantifiers) – Choose the correct answer</h3><div id="gramMCQ"></div></div>
+    <div class="section"><h3>C) Fill in the gaps (use words in brackets)</h3><p class="note">words: fluency, tolerance, hesitation, perspectives, expanding</p><div id="fillGaps"></div></div>
+    <div class="section"><button id="resetExam" class="btn">🔁 Reset Exam</button></div>
+  </section>
+</main>
+
+<script>
+let voice=null; let audioCtx=null; let unlocked=false; const voiceNameEl=document.getElementById('voiceName');
+function ensureAudio(){ if(!audioCtx){ audioCtx=new(window.AudioContext||window.webkitAudioContext)(); } if(audioCtx.state==='suspended'){ audioCtx.resume(); } }
+function unlock(){ ensureAudio(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); g.gain.value=0; o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.03); unlocked=true; }
+function waitVoices(){ return new Promise(res=>{ if(speechSynthesis.getVoices().length){res();} else { speechSynthesis.onvoiceschanged=res; } }); }
+async function chooseUKVoice(){ await waitVoices(); const vs=speechSynthesis.getVoices(); voice = vs.find(v=>v.lang==='en-GB') || vs.find(v=>v.lang.startsWith('en')); if(voiceNameEl) voiceNameEl.textContent = voice? (voice.name+" ("+voice.lang+")") : 'System default'; }
+function speak(text, rate){ ensureAudio(); if(!unlocked){ showToast('Tap Enable Sound first'); return; } const u=new SpeechSynthesisUtterance(text); u.lang='en-GB'; u.rate=rate||0.92; if(voice) u.voice=voice; speechSynthesis.speak(u); }
+function cheer(){ ensureAudio(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(760,audioCtx.currentTime); g.gain.setValueAtTime(0.0001,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.35,audioCtx.currentTime+0.02); g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.28); o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.3);} 
+const cf=document.getElementById('confetti').getContext('2d');function confetti(n=40){const W=cf.canvas.width=innerWidth,H=cf.canvas.height=innerHeight,cs=['#10b981','#34d399','#ffd166','#06d6a0','#8d99ae'];let parts=Array.from({length:n},()=>({x:Math.random()*W,y:-10,r:4+Math.random()*6,c:cs[Math|0*Math.random()],vy:2+Math.random()*3,vx:-1+Math.random()*2}));function step(){cf.clearRect(0,0,W,H);parts.forEach(p=>{p.y+=p.vy;p.x+=p.vx;cf.fillStyle=p.c;cf.beginPath();cf.arc(p.x,p.y,p.r,0,Math.PI*2);cf.fill();});if(parts.length)requestAnimationFrame(step);}requestAnimationFrame(step);setTimeout(()=>parts=[],900);} 
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),900);} 
+
+document.getElementById('enableSound').onclick=async()=>{ unlock(); await chooseUKVoice(); showToast('Sound ready ✅')};
+document.getElementById('testVoice').onclick=()=>speak('British voice is ready. Hello Asmaa!',0.95);
+
+const tabs=document.querySelectorAll('.tab'); const panels=document.querySelectorAll('.panel');
+tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active'); panels.forEach(p=>p.classList.remove('active')); document.getElementById(t.dataset.tab).classList.add('active'); }));
+function bindSubtabs(panelId){ const box=document.getElementById(panelId); if(!box) return; const subs=box.parentElement.querySelectorAll('.subtab'); subs.forEach(s=>s.addEventListener('click',()=>{ subs.forEach(x=>x.classList.remove('active')); s.classList.add('active'); const parent=box.parentElement; const secs=parent.querySelectorAll('.section'); secs.forEach(el=>{ const id=el.id||''; if(id.startsWith(panelId.split('_')[0]+'_')) el.style.display='none'; }); document.getElementById(s.dataset.stab).style.display='block'; })); }
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+const data = {
+  l1:{vocab:[{w:'fluency',ar:'الطلاقة',ex:'Regular practice builds fluency.'},{w:'tolerance',ar:'التسامح',ex:'Learning cultures increases tolerance.'},{w:'hesitation',ar:'تردد',ex:'Hesitation decreases with speaking practice.'},{w:'perspectives',ar:'وجهات نظر',ex:'Travel gives new perspectives.'},{w:'expanding',ar:'توسيع/تنامٍ',ex:'Reading is expanding our knowledge.'}],
+      reading:['Learning a foreign language opens doors to new cultures.','Students can make international friends online.','Practice every day to improve confidence and fluency.','Respect for differences grows with understanding.','Digital tools help learners study anywhere, anytime.','A foreign language expands personal and academic horizons.'],grammar:false},
+  l2:{vocab:[{w:'multilingual',ar:'متعدد اللغات',ex:'She is multilingual and speaks three languages.'},{w:'exchange program',ar:'برنامج تبادل',ex:'He joined an exchange program in Spain.'},{w:'collaborate',ar:'يتعاون',ex:'Students collaborate on projects online.'},{w:'dedicate',ar:'يكرّس/يخصّص',ex:'They dedicate time to daily practice.'},{w:'improve',ar:'يحسّن',ex:'Listening to podcasts improves vocabulary.'},{w:'respect',ar:'احترام',ex:'Respect different cultures and traditions.'}],
+      reading:['A multilingual student shares her journey abroad.','At first, she felt shy and made simple phrases.','She used apps and spoke to locals every day.','Her confidence improved after regular practice.','Friends appreciated her efforts to learn their language.','She advises others to be patient and persistent.'],grammar:false},
+  l3:{vocab:[{w:'app',ar:'تطبيق',ex:'This app adjusts to your level.'},{w:'translation',ar:'ترجمة',ex:'Use translation carefully to check meaning.'},{w:'native speaker',ar:'متحدث أصلي',ex:'Chat with native speakers online.'},{w:'adjust',ar:'يضبط/يكيّف',ex:'The tool can adjust speed and difficulty.'},{w:'perspective',ar:'منظور',ex:'Technology adds a new perspective to learning.'},{w:'tool',ar:'أداة',ex:'Video is a powerful learning tool.'}],
+      reading:['Apps personalize lessons using simple settings.','Videos and songs make listening practice enjoyable.','Online communities connect learners worldwide.','Students share tips and motivate each other.','Smart tools give quick checks of vocabulary.','Choose the method that fits your goals.'],
+      grammar:true,gData:[{q:'There are ____ useful apps for language practice.',opts:['many','much','a little','any'],correct:0},{q:'We don’t have ____ time before the test.',opts:['many','much','a few','some'],correct:1},{q:'Can I have ____ help with this exercise?',opts:['any','some','much','many'],correct:1},{q:'She made ____ mistakes today—great job!',opts:['a little','a few','much','many'],correct:1},{q:'There isn’t ____ information on the page.',opts:['many','much','a few','some'],correct:1}]},
+  l4:{vocab:[{w:'anxious',ar:'قلق',ex:'He felt anxious at the station.'},{w:'complicated',ar:'معقّد',ex:'Buying a ticket was complicated.'},{w:'confident',ar:'واثق',ex:'He became confident after practice.'},{w:'enriching',ar:'مُثري',ex:'The trip was an enriching experience.'},{w:'directions',ar:'اتجاهات',ex:'He asked for directions politely.'},{w:'translate',ar:'يترجم',ex:'He used an app to translate words.'}],
+      reading:['Ramy travelled to a new city and felt shy.','He downloaded an app and wrote useful phrases.','He practiced daily and ordered food in English.','People understood him and smiled.','Step by step, he felt confident in conversations.','Learning English turned the trip into an enriching adventure.'],grammar:false}
+};
+
+function buildCards(prefix){ const grid=document.getElementById('cardGrid_'+prefix); const vocab=data[prefix].vocab; grid.innerHTML=''; vocab.forEach(v=>{ const c=document.createElement('div'); c.className='card'; c.innerHTML = "<div class='word'>"+v.w+"</div><div class='arabic'>"+v.ar+"</div><div class='example'>• "+v.ex+"</div>"; const ctr=document.createElement('div'); ctr.className='controls-row'; const bw=document.createElement('button'); bw.className='play'; bw.textContent='🔊 Word'; bw.onclick=()=>speak(v.w,0.9); const be=document.createElement('button'); be.className='play example'; be.textContent='🗣️ Example'; be.onclick=()=>speak(v.ex,0.92); ctr.appendChild(bw); ctr.appendChild(be); c.appendChild(ctr); grid.appendChild(c); }); }
+function buildSpelling(prefix){ const vocab=data[prefix].vocab; const sPrompt=document.getElementById('spellPrompt_'+prefix); const sInp=document.getElementById('spellInput_'+prefix); const sHear=document.getElementById('spellHear_'+prefix); const sCheck=document.getElementById('spellCheck_'+prefix); const sNext=document.getElementById('spellNext_'+prefix); const sStart=document.getElementById('spellStart_'+prefix); const sScore=document.getElementById('spellScore_'+prefix); const sTotal=document.getElementById('spellTotal_'+prefix); let i=0,score=0; if(!sTotal) return; sTotal.textContent=vocab.length; function show(){ const v=vocab[i]; if(sPrompt) sPrompt.textContent='اكتب الكلمة الإنجليزية: '+v.ar; if(sInp){ sInp.value=''; sInp.focus(); } } if(sStart){ sStart.onclick=()=>{ i=0; score=0; if(sScore) sScore.textContent=0; show(); speak(vocab[i].w,0.9); }; } if(sHear){ sHear.onclick=()=>speak(vocab[i].w,0.9); } if(sCheck){ sCheck.onclick=()=>{ const v=vocab[i]; if(sInp && sInp.value.trim().toLowerCase()===v.w.toLowerCase()){ score++; if(sScore) sScore.textContent=score; cheer(); confetti(26); if(sPrompt) sPrompt.textContent='✅ Correct! '+v.w; } else { if(sPrompt) sPrompt.textContent='❌ Try again. Correct: '+v.w; } }; } if(sNext){ sNext.onclick=()=>{ i=(i+1)%vocab.length; show(); speak(vocab[i].w,0.9); }; } }
+function buildMatching(prefix){ const vocab=data[prefix].vocab; const eng=document.getElementById('englishCol_'+prefix); const arb=document.getElementById('arabicCol_'+prefix); const tp=document.getElementById('totalPairs_'+prefix); const mc=document.getElementById('matchedCount_'+prefix); if(!eng||!arb) return; tp.textContent=vocab.length; let matched=0; eng.innerHTML=''; arb.innerHTML=''; shuffle([...vocab]).forEach(v=>{ const t=document.createElement('div'); t.className='token'; t.textContent=v.w; t.draggable=true; t.dataset.word=v.w; t.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain', t.dataset.word); }); eng.appendChild(t); }); shuffle([...vocab]).forEach(v=>{ const b=document.createElement('div'); b.className='bucket'; b.textContent=v.ar; b.dataset.word=v.w; b.addEventListener('dragover',e=>e.preventDefault()); b.addEventListener('drop',e=>{ const w=e.dataTransfer.getData('text/plain'); if(w===b.dataset.word){ b.classList.remove('wrong'); b.classList.add('correct'); matched++; if(mc) mc.textContent=matched; cheer(); confetti(24); const tk=[...eng.querySelectorAll('.token')].find(x=>x.dataset.word===w); if(tk){ tk.style.opacity=.45; tk.style.pointerEvents='none'; tk.draggable=false; } } else { b.classList.add('wrong'); setTimeout(()=>b.classList.remove('wrong'),300); } }); arb.appendChild(b); }); }
+function buildKahoot(prefix){ const vocab=data[prefix].vocab; const quiz=document.getElementById('quiz_'+prefix); const scoreEl=document.getElementById('quizScore_'+prefix); const totalEl=document.getElementById('quizTotal_'+prefix); if(!quiz) return; const quizData=vocab.map(v=>{ const wrong=shuffle(vocab.map(x=>x.w)).filter(x=>x!==v.w).slice(0,3); const opts=shuffle([...wrong,v.w]); return {q:v.ar,opts,correct:v.w}; }); if(totalEl) totalEl.textContent=quizData.length; let vScore=0; quiz.innerHTML=''; quizData.forEach((it,idx)=>{ const box=document.createElement('div'); box.className='section'; const q=document.createElement('div'); q.className='h2'; q.textContent=(idx+1)+'. اختر الكلمة الإنجليزية: '+it.q; box.appendChild(q); const opts=document.createElement('div'); opts.className='options'; box.appendChild(opts); it.opts.forEach(o=>{ const b=document.createElement('div'); b.className='option'; b.textContent=o; b.onclick=()=>{ if(b.dataset.lock)return; [...opts.children].forEach(ch=>ch.dataset.lock='1'); if(o===it.correct){ b.classList.add('correct'); vScore++; if(scoreEl) scoreEl.textContent=vScore; cheer(); confetti(20);} else { b.classList.add('wrong'); } }; opts.appendChild(b); }); quiz.appendChild(box); }); }
+function buildReading(prefix){ const reading=data[prefix].reading; const rl=document.getElementById('readingList_'+prefix); if(!rl) return; rl.innerHTML=''; reading.forEach((line,i)=>{ const li=document.createElement('li'); li.textContent=(i+1)+'. '+line+' '; const btn=document.createElement('button'); btn.className='btn'; btn.textContent='🔊 Speak'; btn.onclick=()=>speak(line,0.9); li.appendChild(btn); rl.appendChild(li); }); }
+function buildGrammar(prefix){ if(!data[prefix].grammar) return; const gData=data[prefix].gData; const gQuiz=document.getElementById('grammarQuiz_'+prefix); const gScoreEl=document.getElementById('gScore_'+prefix); const gTotalEl=document.getElementById('gTotal_'+prefix); if(gTotalEl) gTotalEl.textContent=gData.length; let gScore=0; gQuiz.innerHTML=''; gData.forEach((it,idx)=>{ const q=document.createElement('div'); q.className='h2'; q.textContent=(idx+1)+'. '+it.q; gQuiz.appendChild(q); const opts=document.createElement('div'); opts.className='options'; gQuiz.appendChild(opts); it.opts.forEach((o,i)=>{ const b=document.createElement('div'); b.className='option'; b.textContent=o; b.onclick=()=>{ if(b.dataset.lock)return; [...opts.children].forEach(ch=>ch.dataset.lock='1'); if(i===it.correct){ b.classList.add('correct'); gScore++; if(gScoreEl) gScoreEl.textContent=gScore; cheer(); confetti(18);} else { b.classList.add('wrong'); } }; opts.appendChild(b); }); }); }
+
+['l1','l2','l3','l4'].forEach(id=>{ buildCards(id); buildSpelling(id); buildMatching(id); buildKahoot(id); buildReading(id); buildGrammar(id); bindSubtabs(id+'_vocab'); });
+
+const exVocab=[{q:'Learning a foreign language improves _____.',opts:['fluency','hesitation','complicated','anxious'],correct:0},{q:'Respect and _____ are promoted by understanding cultures.',opts:['tolerance','confidence','enriching','perspectives'],correct:0},{q:'Some students show _____ before speaking a new language.',opts:['hesitation','fluency','expanding','global'],correct:0},{q:'Learning languages gives new _____ on the world.',opts:['perspectives','hesitation','confidence','enriching'],correct:0},{q:'Language learning helps in _____ horizons.',opts:['expanding','complicated','anxious','hesitation'],correct:0},{q:'Ramy felt _____ when he could not speak English.',opts:['anxious','confident','enriching','fluency'],correct:0},{q:'Buying a ticket was a _____ process for Ramy.',opts:['complicated','fluency','enriching','tolerance'],correct:0},{q:'After practice, Ramy became more _____.',opts:['confident','hesitation','anxious','complicated'],correct:0},{q:'Traveling abroad can be an _____ experience.',opts:['enriching','anxious','complicated','hesitation'],correct:0},{q:'Learning languages makes you a _____ citizen.',opts:['global','digital','local','simple'],correct:0}];
+const exGram=[{q:'There are _____ apps for language learning.',opts:['many','much','a little','any'],correct:0},{q:'We don’t have _____ time to finish homework.',opts:['much','many','few','some'],correct:0},{q:'Students need _____ practice every day.',opts:['a lot of','few','little','any'],correct:0},{q:'There are _____ mistakes in this text.',opts:['few','little','many','much'],correct:2},{q:'I have _____ advice for you.',opts:['a little','few','many','much'],correct:0},{q:'There are _____ opportunities for learning online.',opts:['some','any','much','little'],correct:0},{q:'Do you have _____ questions about the lesson?',opts:['any','some','few','much'],correct:0},{q:'Many schools use _____ boards now.',opts:['digital','much','few','little'],correct:0},{q:'There is _____ information on the internet.',opts:['much','many','few','some'],correct:0},{q:'We need _____ help to set up the devices.',opts:['some','any','few','little'],correct:0}];
+const exFill=[{q:'21) Learning languages improves ________.',a:'fluency'},{q:'22) Understanding cultures builds ________.',a:'tolerance'},{q:'23) Practice reduces ________ before speaking.',a:'hesitation'},{q:'24) Travel brings new ________ on life.',a:'perspectives'},{q:'25) Reading helps in ________ your horizons.',a:'expanding'}];
+
+let score=0, answered=0; const totScore=document.getElementById('totScore'); const totMax=document.getElementById('totMax'); const answeredEl=document.getElementById('answered'); const bar=document.getElementById('bar'); const max=exVocab.length+exGram.length+exFill.length; if(totMax) totMax.textContent=max;
+function incAnswered(){answered++; if(answeredEl) answeredEl.textContent=answered; if(bar) bar.style.width=(answered/max*100).toFixed(0)+'%';}
+function addMCQ(containerId,data){const wrap=document.getElementById(containerId); if(!wrap) return; wrap.innerHTML=''; data.forEach((it,idx)=>{ const q=document.createElement('div'); q.className='h2'; q.textContent=(idx+1)+'. '+it.q; wrap.appendChild(q); const opts=document.createElement('div'); opts.className='options'; wrap.appendChild(opts); it.opts.forEach((o,i)=>{ const b=document.createElement('div'); b.className='option'; b.textContent=o; b.onclick=()=>{ if(b.dataset.lock)return; [...opts.children].forEach(ch=>ch.dataset.lock='1'); if(i===it.correct){ b.classList.add('correct'); score++; if(totScore) totScore.textContent=score; if(unlocked){cheer();} confetti(32);} else { b.classList.add('wrong'); } incAnswered(); }; opts.appendChild(b); }); }); }
+function addFill(containerId,data){const wrap=document.getElementById(containerId); if(!wrap) return; wrap.innerHTML=''; data.forEach((it)=>{ const row=document.createElement('div'); row.style.margin='10px 0'; const inp=document.createElement('input'); inp.type='text'; inp.style.cssText='padding:8px;border:2px solid var(--accent);border-radius:10px;font-weight:700'; const btn=document.createElement('button'); btn.className='btn'; btn.textContent='Check'; row.appendChild(document.createTextNode(it.q+' ')); row.appendChild(inp); row.appendChild(document.createTextNode(' ')); row.appendChild(btn); btn.onclick=()=>{ if(inp.dataset.lock)return; const ok=inp.value.trim().toLowerCase()===it.a; inp.dataset.lock='1'; if(ok){ inp.style.borderColor='var(--ok)'; score++; if(totScore) totScore.textContent=score; if(unlocked){cheer();} confetti(24);} else { inp.style.borderColor='var(--bad)'; } incAnswered(); }; wrap.appendChild(row); }); }
+function renderExam(){ score=0; answered=0; if(totScore) totScore.textContent='0'; if(answeredEl) answeredEl.textContent='0'; if(bar) bar.style.width='0%'; addMCQ('vocabMCQ',exVocab); addMCQ('gramMCQ',exGram); addFill('fillGaps',exFill); }
+const resetExam=document.getElementById('resetExam'); if(resetExam) resetExam.onclick=()=>{ renderExam(); showToast('Exam reset 🔁') };
+
+chooseUKVoice(); renderExam();
+</script>
+</body>
+</html>
